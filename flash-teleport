@@ -1,8 +1,8 @@
 --[[
-    KYROZZ FLASH ULTRA-FORCE (V-PROMPT)
+    KYROZZ FLASH SYNC (V-ULTRA PRECIS)
     - Mode : ON/OFF Toggle
-    - Auto-Action : Détecte "Steal" et active le Flash à 1.49s
-    - Bypass : Force l'équipement même si l'inventaire est bloqué
+    - Action : Utilise l'item équipé à 1.49s du Prompt
+    - Cible : Flash Teleport
 ]]
 
 local Players = game:GetService("Players")
@@ -10,17 +10,17 @@ local UserInputService = game:GetService("UserInputService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local player = Players.LocalPlayer
-local ITEM_NAME = "Flash Teleport" --
+local ITEM_NAME = "Flash Teleport" -- Nom de l'item
 local NEW_LOGO = "rbxassetid://100954854728714"
-local flashEnabled = false -- État ON/OFF
+local flashEnabled = false 
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "KzrFlashPrompt"
+screenGui.Name = "KzrFlashSyncFinal"
 screenGui.Parent = game:GetService("CoreGui")
 screenGui.ResetOnSpawn = false
 
 ----------------------------------------------------------------
--- GUI PREMIUM (DESIGN ROUGE/VERT NÉON)
+-- GUI PREMIUM ROUGE/VERT
 ----------------------------------------------------------------
 local openBtn = Instance.new("ImageButton")
 openBtn.Size = UDim2.new(0, 70, 0, 70)
@@ -54,44 +54,44 @@ flashBtn.Parent = mainFrame
 Instance.new("UICorner", flashBtn).CornerRadius = UDim.new(0, 8)
 
 ----------------------------------------------------------------
--- LOGIQUE DE FORCE ET D'INTERACTION (1.49s)
+-- LOGIQUE DE SYNCHRONISATION 1.49s
 ----------------------------------------------------------------
 
-local function forceFlash()
+local function activateFlash()
     local char = player.Character
     if not char then return end
     
-    local tool = player.Backpack:FindFirstChild(ITEM_NAME) or char:FindFirstChild(ITEM_NAME)
-    if tool then
-        tool.Parent = char -- Force la prise en main
-        task.wait(0.05)
-        tool:Activate() -- Force l'utilisation
+    -- On vérifie que tu tiens bien l'objet dans ta main
+    local tool = char:FindFirstChild(ITEM_NAME)
+    
+    if tool and tool:IsA("Tool") then
+        tool:Activate() -- Utilise l'objet
     end
 end
 
--- Détection du ProximityPrompt "Steal"
+-- Détection de l'appui sur le bouton d'interaction
 ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
+    -- On vérifie si activé et si c'est un prompt de type "Steal"
     if flashEnabled and prompt.ActionText == "Steal" then
-        -- Attente de 1.49s avant d'activer le flash
-        task.wait(1.49)
-        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-             forceFlash()
-        end
+        -- Temps requis total : 1.5s
+        -- On attend 1.49s pour être juste avant la fin
+        task.wait(1.49) 
+        activateFlash()
     end
 end)
 
 ----------------------------------------------------------------
--- TOGGLE ON/OFF
+-- SYSTÈME ON/OFF
 ----------------------------------------------------------------
 local function toggleFlash()
     flashEnabled = not flashEnabled
     if flashEnabled then
         flashBtn.Text = "FLASH TELEPORT : ON"
-        flashBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0) -- Vert pour ON
+        flashBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
         ost.Color = Color3.fromRGB(0, 200, 0)
     else
         flashBtn.Text = "FLASH TELEPORT : OFF"
-        flashBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- Rouge pour OFF
+        flashBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
         ost.Color = Color3.fromRGB(200, 0, 0)
     end
 end
@@ -99,7 +99,6 @@ end
 openBtn.MouseButton1Click:Connect(function() mainFrame.Visible = not mainFrame.Visible end)
 flashBtn.MouseButton1Click:Connect(toggleFlash)
 
--- Raccourci Touche F pour ON/OFF
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.F then
