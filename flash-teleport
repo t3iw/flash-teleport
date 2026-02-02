@@ -1,0 +1,116 @@
+--[[
+    KYROZZ FLASH AUTO-USE
+    - Item ciblé : Flash Teleport
+    - Action : Équipe l'item et force le clic gauche (Activate)
+]]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local currentKeybind = Enum.KeyCode.F
+local isUsing = false
+local ITEM_NAME = "Flash Teleport" -- Nom récupéré de la fiche technique
+local NEW_LOGO = "rbxassetid://100954854728714"
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "KzrFlashTool"
+screenGui.Parent = game:GetService("CoreGui")
+screenGui.ResetOnSpawn = false
+
+----------------------------------------------------------------
+-- INTERFACE GRAPHIQUE
+----------------------------------------------------------------
+local openBtn = Instance.new("ImageButton")
+openBtn.Size = UDim2.new(0, 70, 0, 70)
+openBtn.Position = UDim2.new(0, 15, 0.5, -35)
+openBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+openBtn.Image = NEW_LOGO
+openBtn.Parent = screenGui
+Instance.new("UICorner", openBtn).CornerRadius = UDim.new(1, 0)
+local ost = Instance.new("UIStroke", openBtn)
+ost.Color = Color3.fromHex("FF0000")
+ost.Thickness = 2
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 260, 0, 160)
+mainFrame.Position = UDim2.new(0, 95, 0.5, -80) 
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+Instance.new("UIStroke", mainFrame).Color = Color3.fromHex("FF0000")
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 50)
+title.Text = "FLASH UTILISATEUR"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.BackgroundTransparency = 1
+title.Parent = mainFrame
+
+local flashBtn = Instance.new("TextButton")
+flashBtn.Size = UDim2.new(0.85, 0, 0, 60)
+flashBtn.Position = UDim2.new(0.075, 0, 0.45, 0)
+flashBtn.BackgroundColor3 = Color3.fromHex("FF0000")
+flashBtn.Text = "FLASH TELEPORT"
+flashBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+flashBtn.Font = Enum.Font.GothamBold
+flashBtn.TextSize = 20
+flashBtn.Parent = mainFrame
+Instance.new("UICorner", flashBtn).CornerRadius = UDim.new(0, 8)
+
+----------------------------------------------------------------
+-- LOGIQUE D'UTILISATION AUTOMATIQUE
+----------------------------------------------------------------
+
+local function useFlashItem()
+    if isUsing then return end
+    
+    local char = player.Character
+    if not char then return end
+    
+    -- Chercher l'item dans le Backpack ou déjà équipé
+    local tool = player.Backpack:FindFirstChild(ITEM_NAME) or char:FindFirstChild(ITEM_NAME)
+    
+    if tool and tool:IsA("Tool") then
+        isUsing = true
+        
+        -- 1. Équiper l'objet (le mettre dans la main)
+        tool.Parent = char
+        
+        -- 2. Attendre un très court instant pour que Roblox valide l'équipement
+        task.wait(0.05)
+        
+        -- 3. Forcer l'activation (équivalent du clic gauche)
+        tool:Activate()
+        
+        flashBtn.Text = "ACTIVÉ !"
+        task.wait(0.5)
+        flashBtn.Text = "FLASH TELEPORT"
+        
+        isUsing = false
+    else
+        flashBtn.Text = "ITEM NON TROUVÉ"
+        task.wait(1)
+        flashBtn.Text = "FLASH TELEPORT"
+    end
+end
+
+----------------------------------------------------------------
+-- CONTRÔLES
+----------------------------------------------------------------
+openBtn.MouseButton1Click:Connect(function() 
+    mainFrame.Visible = not mainFrame.Visible 
+end)
+
+flashBtn.MouseButton1Click:Connect(useFlashItem)
+
+-- Raccourci clavier (Touche F par défaut)
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == currentKeybind then
+        useFlashItem()
+    end
+end)
