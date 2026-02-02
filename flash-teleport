@@ -123,7 +123,7 @@ end
 ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
     -- Activation si ON et action "Steal" détectée
     if flashEnabled and prompt.ActionText == "Steal" then
-        task.wait(1.45) -- Délai ajusté à 1.47s
+        task.wait(1.40) -- Délai ajusté à 1.47s
         local char = player.Character
         local tool = char and char:FindFirstChild(ITEM_NAME)
         if tool then
