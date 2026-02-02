@@ -1,7 +1,7 @@
 --[[
-    KYROZZ FLASH SYNC (V-ULTRA PRECIS)
-    - Mode : ON/OFF Toggle
-    - Action : Utilise l'item équipé à 1.49s du Prompt
+    KYROZZ FLASH SYNC (V-1.48 STABLE)
+    - UI : Premium Rouge Néon (Original)
+    - Action : Activate à 1.48s du Prompt "Steal"
     - Cible : Flash Teleport
 ]]
 
@@ -10,17 +10,18 @@ local UserInputService = game:GetService("UserInputService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local player = Players.LocalPlayer
-local ITEM_NAME = "Flash Teleport" -- Nom de l'item
+local ITEM_NAME = "Flash Teleport" -- Nom identifié
 local NEW_LOGO = "rbxassetid://100954854728714"
-local flashEnabled = false 
+local currentKeybind = Enum.KeyCode.F
+local flashEnabled = false
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "KzrFlashSyncFinal"
+screenGui.Name = "KzrStable148"
 screenGui.Parent = game:GetService("CoreGui")
 screenGui.ResetOnSpawn = false
 
 ----------------------------------------------------------------
--- GUI PREMIUM ROUGE/VERT
+-- CONSTRUCTION DU GUI (RETOUR AU MODÈLE ORIGINAL)
 ----------------------------------------------------------------
 local openBtn = Instance.new("ImageButton")
 openBtn.Size = UDim2.new(0, 70, 0, 70)
@@ -40,68 +41,114 @@ mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainFrame.Visible = false
 mainFrame.Parent = screenGui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
-Instance.new("UIStroke", mainFrame).Color = Color3.fromHex("FF0000")
+local mst = Instance.new("UIStroke", mainFrame)
+mst.Color = Color3.fromHex("FF0000")
+mst.Thickness = 2
+
+local guiLogo = Instance.new("ImageLabel")
+guiLogo.Size = UDim2.new(0, 35, 0, 35)
+guiLogo.Position = UDim2.new(0, 12, 0, 12)
+guiLogo.Image = NEW_LOGO
+guiLogo.BackgroundTransparency = 1
+guiLogo.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -90, 0, 50)
+title.Position = UDim2.new(0, 55, 0, 5)
+title.Text = "discord.gg/kzr"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.BackgroundTransparency = 1
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = mainFrame
+
+local settingsBtn = Instance.new("TextButton")
+settingsBtn.Size = UDim2.new(0, 35, 0, 35)
+settingsBtn.Position = UDim2.new(1, -45, 0, 12)
+settingsBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+settingsBtn.Text = "⚙"
+settingsBtn.TextSize = 22
+settingsBtn.TextColor3 = Color3.fromHex("FF0000")
+settingsBtn.Parent = mainFrame
+Instance.new("UICorner", settingsBtn).CornerRadius = UDim.new(1, 0)
+Instance.new("UIStroke", settingsBtn).Color = Color3.fromHex("FF0000")
 
 local flashBtn = Instance.new("TextButton")
-flashBtn.Size = UDim2.new(0.85, 0, 0, 60)
-flashBtn.Position = UDim2.new(0.075, 0, 0.4, 0)
+flashBtn.Size = UDim2.new(0.85, 0, 0, 50)
+flashBtn.Position = UDim2.new(0.075, 0, 0.6, 0)
 flashBtn.BackgroundColor3 = Color3.fromHex("FF0000")
-flashBtn.Text = "FLASH TELEPORT : OFF"
+flashBtn.Text = "FLASH : OFF"
 flashBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 flashBtn.Font = Enum.Font.GothamBold
-flashBtn.TextSize = 16
+flashBtn.TextSize = 18
 flashBtn.Parent = mainFrame
 Instance.new("UICorner", flashBtn).CornerRadius = UDim.new(0, 8)
 
+local keyFrame = Instance.new("Frame")
+keyFrame.Size = UDim2.new(0, 180, 0, 60)
+keyFrame.Position = UDim2.new(1, 10, 0, 0)
+keyFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+keyFrame.Visible = false
+keyFrame.Parent = mainFrame
+Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0, 8)
+Instance.new("UIStroke", keyFrame).Color = Color3.fromHex("FF0000")
+
+local keyBtn = Instance.new("TextButton")
+keyBtn.Size = UDim2.new(1, 0, 1, 0)
+keyBtn.BackgroundTransparency = 1
+keyBtn.Text = "KEY: " .. currentKeybind.Name
+keyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBtn.Font = Enum.Font.GothamBold
+keyBtn.TextSize = 22
+keyBtn.Parent = keyFrame
+
 ----------------------------------------------------------------
--- LOGIQUE DE SYNCHRONISATION 1.49s
+-- LOGIQUE DE SYNCHRONISATION (1.48s)
 ----------------------------------------------------------------
 
-local function activateFlash()
-    local char = player.Character
-    if not char then return end
-    
-    -- On vérifie que tu tiens bien l'objet dans ta main
-    local tool = char:FindFirstChild(ITEM_NAME)
-    
-    if tool and tool:IsA("Tool") then
-        tool:Activate() -- Utilise l'objet
+local function toggleFlash()
+    flashEnabled = not flashEnabled
+    if flashEnabled then
+        flashBtn.Text = "FLASH : ON"
+        flashBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+        mst.Color = Color3.fromRGB(0, 255, 0)
+    else
+        flashBtn.Text = "FLASH : OFF"
+        flashBtn.BackgroundColor3 = Color3.fromHex("FF0000")
+        mst.Color = Color3.fromHex("FF0000")
     end
 end
 
--- Détection de l'appui sur le bouton d'interaction
 ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
-    -- On vérifie si activé et si c'est un prompt de type "Steal"
+    -- Déclenchement si ON et action "Steal"
     if flashEnabled and prompt.ActionText == "Steal" then
-        -- Temps requis total : 1.5s
-        -- On attend 1.49s pour être juste avant la fin
-        task.wait(1.49) 
-        activateFlash()
+        task.wait(1.48) -- Délai demandé
+        local char = player.Character
+        local tool = char and char:FindFirstChild(ITEM_NAME)
+        if tool then
+            tool:Activate() -- Utilise l'item équipé
+        end
     end
 end)
 
 ----------------------------------------------------------------
--- SYSTÈME ON/OFF
+-- INTERACTION GUI & TOUCHES
 ----------------------------------------------------------------
-local function toggleFlash()
-    flashEnabled = not flashEnabled
-    if flashEnabled then
-        flashBtn.Text = "FLASH TELEPORT : ON"
-        flashBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-        ost.Color = Color3.fromRGB(0, 200, 0)
-    else
-        flashBtn.Text = "FLASH TELEPORT : OFF"
-        flashBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-        ost.Color = Color3.fromRGB(200, 0, 0)
-    end
-end
-
 openBtn.MouseButton1Click:Connect(function() mainFrame.Visible = not mainFrame.Visible end)
+settingsBtn.MouseButton1Click:Connect(function() keyFrame.Visible = not keyFrame.Visible end)
 flashBtn.MouseButton1Click:Connect(toggleFlash)
+
+local listening = false
+keyBtn.MouseButton1Click:Connect(function() listening = true; keyBtn.Text = "..." end)
 
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
-    if input.KeyCode == Enum.KeyCode.F then
+    if listening then
+        currentKeybind = input.KeyCode
+        keyBtn.Text = "KEY: " .. input.KeyCode.Name
+        listening = false
+    elseif input.KeyCode == currentKeybind then
         toggleFlash()
     end
 end)
