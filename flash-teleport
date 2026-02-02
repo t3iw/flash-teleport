@@ -1,7 +1,7 @@
 --[[
-    KYROZZ FLASH SYNC (V-1.20 STABLE)
-    - UI : Premium Rouge Néon (Complet)
-    - Action : Activate à 1.20s du Prompt "Steal"
+    KYROZZ FLASH SYNC (V-1.30 STABLE)
+    - UI : Premium Rouge Néon (Original)
+    - Action : Activate à 1.30s du Prompt "Steal"
     - Cible : Flash Teleport
 ]]
 
@@ -10,13 +10,13 @@ local UserInputService = game:GetService("UserInputService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local player = Players.LocalPlayer
-local ITEM_NAME = "Flash Teleport" -- Nom de l'item identifié
+local ITEM_NAME = "Flash Teleport" -- Nom de l'item
 local NEW_LOGO = "rbxassetid://100954854728714"
 local currentKeybind = Enum.KeyCode.F
 local flashEnabled = false
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "KzrStable120"
+screenGui.Name = "KzrStable130"
 screenGui.Parent = game:GetService("CoreGui")
 screenGui.ResetOnSpawn = false
 
@@ -55,7 +55,7 @@ guiLogo.Parent = mainFrame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -90, 0, 50)
 title.Position = UDim2.new(0, 55, 0, 5)
-title.Text = "discord.gg/laraffale"
+title.Text = "discord.gg/kzr"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
@@ -104,7 +104,7 @@ keyBtn.TextSize = 22
 keyBtn.Parent = keyFrame
 
 ----------------------------------------------------------------
--- LOGIQUE DE SYNCHRONISATION (1.20s)
+-- LOGIQUE DE SYNCHRONISATION (1.30s)
 ----------------------------------------------------------------
 
 local function toggleFlash()
@@ -123,7 +123,7 @@ end
 ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
     -- Activation si ON et texte d'action "Steal" détecté
     if flashEnabled and prompt.ActionText == "Steal" then
-        task.wait(1.20) -- Délai de 1.20s configuré
+        task.wait(1.30) -- Délai réglé sur 1.30s
         local char = player.Character
         local tool = char and char:FindFirstChild(ITEM_NAME)
         if tool then
