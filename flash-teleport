@@ -1,27 +1,26 @@
 --[[
-    KYROZZ FLASH ULTRA-FORCE (FINAL CORRIGÉ)
-    - Action : Force Equip (Bypass Inventory Block) + Auto-Click (0.1s)
-    - UI : Premium Rouge Néon avec Logo et Settings
-    - Cible : Flash Teleport
+    KYROZZ FLASH ULTRA-FORCE (V-PROMPT)
+    - Mode : ON/OFF Toggle
+    - Auto-Action : Détecte "Steal" et active le Flash à 1.49s
+    - Bypass : Force l'équipement même si l'inventaire est bloqué
 ]]
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local player = Players.LocalPlayer
-local ITEM_NAME = "Flash Teleport" -- Nom exact de l'objet
+local ITEM_NAME = "Flash Teleport" --
 local NEW_LOGO = "rbxassetid://100954854728714"
-local currentKeybind = Enum.KeyCode.F
-local isTeleporting = false
+local flashEnabled = false -- État ON/OFF
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "KzrStableFinal"
+screenGui.Name = "KzrFlashPrompt"
 screenGui.Parent = game:GetService("CoreGui")
 screenGui.ResetOnSpawn = false
 
 ----------------------------------------------------------------
--- CONSTRUCTION DU GUI (DESIGN ROUGE NÉON)
+-- GUI PREMIUM (DESIGN ROUGE/VERT NÉON)
 ----------------------------------------------------------------
 local openBtn = Instance.new("ImageButton")
 openBtn.Size = UDim2.new(0, 70, 0, 70)
@@ -41,128 +40,69 @@ mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainFrame.Visible = false
 mainFrame.Parent = screenGui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
-local mst = Instance.new("UIStroke", mainFrame)
-mst.Color = Color3.fromHex("FF0000")
-mst.Thickness = 2
-
-local guiLogo = Instance.new("ImageLabel")
-guiLogo.Size = UDim2.new(0, 35, 0, 35)
-guiLogo.Position = UDim2.new(0, 12, 0, 12)
-guiLogo.Image = NEW_LOGO
-guiLogo.BackgroundTransparency = 1
-guiLogo.Parent = mainFrame
-
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -90, 0, 50)
-title.Position = UDim2.new(0, 55, 0, 5)
-title.Text = "discord.gg/kzr"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 18
-title.BackgroundTransparency = 1
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = mainFrame
-
-local settingsBtn = Instance.new("TextButton")
-settingsBtn.Size = UDim2.new(0, 35, 0, 35)
-settingsBtn.Position = UDim2.new(1, -45, 0, 12)
-settingsBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-settingsBtn.Text = "⚙"
-settingsBtn.TextSize = 22
-settingsBtn.TextColor3 = Color3.fromHex("FF0000")
-settingsBtn.Parent = mainFrame
-Instance.new("UICorner", settingsBtn).CornerRadius = UDim.new(1, 0)
-Instance.new("UIStroke", settingsBtn).Color = Color3.fromHex("FF0000")
+Instance.new("UIStroke", mainFrame).Color = Color3.fromHex("FF0000")
 
 local flashBtn = Instance.new("TextButton")
-flashBtn.Size = UDim2.new(0.85, 0, 0, 50)
-flashBtn.Position = UDim2.new(0.075, 0, 0.6, 0)
+flashBtn.Size = UDim2.new(0.85, 0, 0, 60)
+flashBtn.Position = UDim2.new(0.075, 0, 0.4, 0)
 flashBtn.BackgroundColor3 = Color3.fromHex("FF0000")
-flashBtn.Text = "FLASH TELEPORT"
+flashBtn.Text = "FLASH TELEPORT : OFF"
 flashBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 flashBtn.Font = Enum.Font.GothamBold
-flashBtn.TextSize = 18
+flashBtn.TextSize = 16
 flashBtn.Parent = mainFrame
 Instance.new("UICorner", flashBtn).CornerRadius = UDim.new(0, 8)
 
-local keyFrame = Instance.new("Frame")
-keyFrame.Size = UDim2.new(0, 180, 0, 60)
-keyFrame.Position = UDim2.new(1, 10, 0, 0)
-keyFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-keyFrame.Visible = false
-keyFrame.Parent = mainFrame
-Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0, 8)
-Instance.new("UIStroke", keyFrame).Color = Color3.fromHex("FF0000")
-
-local keyBtn = Instance.new("TextButton")
-keyBtn.Size = UDim2.new(1, 0, 1, 0)
-keyBtn.BackgroundTransparency = 1
-keyBtn.Text = "KEY: " .. currentKeybind.Name
-keyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-keyBtn.Font = Enum.Font.GothamBold
-keyBtn.TextSize = 22
-keyBtn.Parent = keyFrame
-
 ----------------------------------------------------------------
--- LOGIQUE DE FORCE BRUTE (BYPASS BLOCAGE)
+-- LOGIQUE DE FORCE ET D'INTERACTION (1.49s)
 ----------------------------------------------------------------
 
-local function runFlashTeleport()
-    if isTeleporting then return end
-    
+local function forceFlash()
     local char = player.Character
     if not char then return end
-
-    -- 1. On cherche l'item même si l'inventaire est "bloqué"
+    
     local tool = player.Backpack:FindFirstChild(ITEM_NAME) or char:FindFirstChild(ITEM_NAME)
-
-    if tool and tool:IsA("Tool") then
-        isTeleporting = true
-        
-        -- 2. FORCE LA PRISE EN MAIN (Bypass les scripts de blocage de sac)
-        tool.Parent = char
-        
-        -- 3. DÉLAI DE 0.1s APRÈS ÉQUIPEMENT
-        task.wait(0.1)
-        
-        -- 4. FORCE L'UTILISATION (Simule le clic gauche)
-        -- On spamme l'activation pour forcer le passage à travers les sécurités
-        for i = 1, 4 do
-            tool:Activate()
-            task.wait(0.01)
-        end
-        
-        flashBtn.Text = "FLASH SUCCESS"
-        task.wait(0.5)
-        flashBtn.Text = "FLASH TELEPORT"
-        isTeleporting = false
-    else
-        flashBtn.Text = "ITEM BLOCKED/MISSING"
-        task.wait(1)
-        flashBtn.Text = "FLASH TELEPORT"
+    if tool then
+        tool.Parent = char -- Force la prise en main
+        task.wait(0.05)
+        tool:Activate() -- Force l'utilisation
     end
 end
 
-----------------------------------------------------------------
--- INPUTS ET CONTRÔLES
-----------------------------------------------------------------
-openBtn.MouseButton1Click:Connect(function() mainFrame.Visible = not mainFrame.Visible end)
-settingsBtn.MouseButton1Click:Connect(function() keyFrame.Visible = not keyFrame.Visible end)
-flashBtn.MouseButton1Click:Connect(runFlashTeleport)
-
-local listening = false
-keyBtn.MouseButton1Click:Connect(function() 
-    listening = true
-    keyBtn.Text = "..." 
+-- Détection du ProximityPrompt "Steal"
+ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
+    if flashEnabled and prompt.ActionText == "Steal" then
+        -- Attente de 1.49s avant d'activer le flash
+        task.wait(1.49)
+        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+             forceFlash()
+        end
+    end
 end)
 
+----------------------------------------------------------------
+-- TOGGLE ON/OFF
+----------------------------------------------------------------
+local function toggleFlash()
+    flashEnabled = not flashEnabled
+    if flashEnabled then
+        flashBtn.Text = "FLASH TELEPORT : ON"
+        flashBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0) -- Vert pour ON
+        ost.Color = Color3.fromRGB(0, 200, 0)
+    else
+        flashBtn.Text = "FLASH TELEPORT : OFF"
+        flashBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- Rouge pour OFF
+        ost.Color = Color3.fromRGB(200, 0, 0)
+    end
+end
+
+openBtn.MouseButton1Click:Connect(function() mainFrame.Visible = not mainFrame.Visible end)
+flashBtn.MouseButton1Click:Connect(toggleFlash)
+
+-- Raccourci Touche F pour ON/OFF
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
-    if listening then
-        currentKeybind = input.KeyCode
-        keyBtn.Text = "KEY: " .. input.KeyCode.Name
-        listening = false
-    elseif input.KeyCode == currentKeybind then
-        runFlashTeleport()
+    if input.KeyCode == Enum.KeyCode.F then
+        toggleFlash()
     end
 end)
